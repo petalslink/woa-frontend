@@ -4,10 +4,27 @@ module.exports = {
   mongo: {
     url: 'mongodb://127.0.0.1:27017/woa'
   },
-  petals: {
-    url: 'http://localhost:8084'
-  },
-  mapping: {
-    '/api/:resource/:uuid': '/petals/rest/:resource/?uuid=:uuid'
-  }
+  routes: [
+    {
+      method: 'GET',
+      // The resource which will be cached
+      resource: {
+        // where to find the resource id in the 'in' parameter
+        id: 'uuid',
+        // the name of the resource, should be unique (not enforced)
+        name: 'bank'
+      },
+      in: '/api/bank/:uuid',
+      out: 'http://localhost:3001/bank/account/:uuid/amount'
+    },
+    {
+      method: 'GET',
+      resource: {
+        id: 'uuid',
+        name: 'resource'
+      },
+      in: '/api/item/:resource/:uuid',
+      out: 'http://locahost:8084/petals/rest/:resource/?id=:uuid'
+    }
+  ]
 };

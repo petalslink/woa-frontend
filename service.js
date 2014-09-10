@@ -1,46 +1,49 @@
 
 module.exports = function(config, db) {
+
   var cache = require('./cache')(db);
   var client = require('./client');
-
-  var getData = function(resource, uuid, callback) {
-    // TODO : Real service call in client without timeout
-    console.log('Getting data from remote service...');
-    setTimeout(function() {
-      client.get(config.petals.url + '/' + uuid, function(err, response) {
-        return callback(err, response);
-      });
-    }, 5000);
-  };
+  var routes = require('./route')(config.route);
 
   return {
-    get: function(resource, uuid, callback) {
-      console.log('Getting data for UUID ', uuid);
+    call: function(route, request, callback) {
 
-      cache.get(resource, uuid, function(err, data) {
-        if (data) {
-          console.log('Data found in cache', data);
-          return callback(null, data);
+      routes.getParams(request.path, route, function(err, params) {
+        if (err) {
+          return callback(err);
         }
 
-        console.log('Data not found in cache');
+        var id = params[route.resource.id] || route.resource.id;
+        var resource = route.resource.name;
 
-        if (err || !data) {
-          getData(resource, uuid, function(err, result) {
-            if (err) {
-              console.log('Error while getting data from remote service');
-              return callback(err);
-            }
+        console.log('ID:', id);
+        console.log('RESOURCE:', resource);
 
-            cache.put(resource, uuid, result, function(err, saved) {
+        cache.get(resource, id, function(err, data) {
+          if (data) {
+            console.log('Data found in cache', data);
+            return callback(null, data);
+          }
+
+          console.log('Data not found in cache');
+
+          if (err || !data) {
+            client.get(route.out, params, function(err, result) {
               if (err) {
-                console.log('Can not put in cache, send back response directly');
-                return callback(null, data);
+                console.log('Error while getting data from remote service');
+                return callback(err);
               }
-              return callback(null, saved[0]);
+
+              cache.put(resource, id, result, function(err, saved) {
+                if (err) {
+                  console.log('Can not put in cache, send back response directly', data);
+                  return callback(null, result);
+                }
+                return callback(null, saved[0]);
+              });
             });
-          });
-        }
+          }
+        });
       });
     }
   }

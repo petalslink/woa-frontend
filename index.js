@@ -1,4 +1,5 @@
 var express = require('express');
+var bodyParser = require('body-parser');
 var config = require('./config');
 var MongoClient = require('mongodb').MongoClient;
 
@@ -13,33 +14,35 @@ MongoClient.connect(config.mongo.url, function(err, db) {
   var service = require('./service')(config, db);
 
   var app = express();
-  app.get('/', function (req, res) {
-    res.send(200);
-  });
+  app.use(bodyParser.json());
+  app.use(bodyParser.urlencoded());
 
-  app.get('/api/:resource/:uuid', middleware.token, function(req, res) {
+  app.get('*', middleware.token, middleware.isAvailableRoute, function(req, res) {
 
-    if (!req.params.resource) {
-      return res.send(400);
-    }
-
-    if (!req.params.uuid) {
-      return res.send(400);
-    }
-
-    service.get(req.params.resource, req.params.uuid, function(err, data) {
+    var routes = require('./route')(config.routes);
+    routes.getRoute(req.path, function(err, route) {
       if (err) {
-        return res.send(500, err);
+        return res.send(500);
       }
-      return res.json(data);
-    })
+
+      if (!route) {
+        return res.send(404);
+      }
+
+      service.call(route, req, function(err, data) {
+        if (err) {
+          return res.send(500, err);
+        }
+        return res.json(data);
+      });
+    });
   });
 
   app.listen(config.port || 3000, function(err) {
     if (err) {
       throw err;
     }
-    console.log('Frontend is running on ', config.port);
-    console.log('Configuration ', config);
+    console.log('WOA Cache Frontend is running on', config.port);
+    console.log('Configured with', config);
   });
 });
