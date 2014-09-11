@@ -39,7 +39,11 @@ Check the comments in the snippet below for details.
 
 ## Run
 
-Be sure you have mongodb up and running before.
+Be sure you have mongodb up and running before:
+
+    mongodb &
+
+Start the NodeJS server:
 
     node index.js
 
