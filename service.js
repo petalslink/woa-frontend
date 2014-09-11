@@ -39,7 +39,7 @@ module.exports = function(config, db) {
                   console.log('Can not put in cache, send back response directly', data);
                   return callback(null, result);
                 }
-                return callback(null, saved[0]);
+                return callback(null, saved[0].data);
               });
             });
           }
