@@ -47,6 +47,13 @@ Start the NodeJS server:
 
     node index.js
 
+To clean the database cache:
+
+    mongo
+    > use woa
+    > db.dropDatabase()
+    > exit
+
 Service is now started on http://localhost:3000. You can call resources based on what is configured in config/routes.
 Don't forget to append the configured token to the URL, for example:
 
