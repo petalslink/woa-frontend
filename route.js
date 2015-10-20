@@ -21,7 +21,7 @@ module.exports = function(routes) {
 
   /**
    * Get route from path
-   *
+   * 
    * @param path
    */
   function getRoute(path, callback) {
@@ -75,6 +75,6 @@ module.exports = function(routes) {
   return {
     exists: exists,
     getParams: getParams,
-    getRoute: getRoute
-  }
+    getRoute: getRoute,
+  };
 };

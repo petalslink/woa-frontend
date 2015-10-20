@@ -10,13 +10,17 @@ module.exports.get = function(urlPattern, params, callback) {
   pathToRegexp(parsed.path, parameters);
 
   parameters.forEach(function(parameter) {
-    urlPattern = urlPattern.replace(':' + parameter.name, params[parameter.name]);
-    console.log(urlPattern);
+    var parameterName = parameter.name;
+    var realValue = params[parameterName];
+    urlPattern = urlPattern.replace(':' + parameterName, realValue);
+    console.log('Replaced ', parameterName, 'with', realValue, ':', urlPattern);
   });
 
   console.log('CALLING URL', urlPattern);
 
-  request.get(urlPattern, {json: true}, function(err, response, body) {
+  request.get(urlPattern, {
+    json : true
+  }, function(err, response, body) {
     return callback(err, body);
   });
 };

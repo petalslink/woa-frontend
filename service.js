@@ -1,12 +1,10 @@
-
-module.exports = function(config, db) {
+module.exports = function(routes, db) {
 
   var cache = require('./cache')(db);
   var client = require('./client');
-  var routes = require('./route')(config.route);
 
   return {
-    call: function(route, request, callback) {
+    call : function(route, request, callback) {
 
       routes.getParams(request.path, route, function(err, params) {
         if (err) {
@@ -34,17 +32,20 @@ module.exports = function(config, db) {
                 return callback(err);
               }
 
+              console.log('Data received from remote service', result);
+
+              // TODO why not send back directly the answer and store in parallel?
               cache.put(resource, id, result, function(err, saved) {
                 if (err) {
                   console.log('Can not put in cache, send back response directly', data);
                   return callback(null, result);
                 }
-                return callback(null, saved[0].data);
+                return callback(null, saved.ops[0].data);
               });
             });
           }
         });
       });
     }
-  }
+  };
 };

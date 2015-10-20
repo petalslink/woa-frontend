@@ -1,9 +1,10 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var config = require('./config');
 var MongoClient = require('mongodb').MongoClient;
 
-var middleware = require('./middleware')(config);
+var config = require('./config');
+var route = require('./route')(config.routes);
+var middleware = require('./middleware')(route, config);
 
 MongoClient.connect(config.mongo.url, function(err, db) {
   if (err) {
@@ -11,16 +12,17 @@ MongoClient.connect(config.mongo.url, function(err, db) {
     throw err;
   }
 
-  var service = require('./service')(config, db);
+  var service = require('./service')(route, db);
 
   var app = express();
+
   app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded());
+  app.use(bodyParser.urlencoded({
+    extended : true
+  }));
 
   app.get('*', middleware.token, middleware.isAvailableRoute, function(req, res) {
-
-    var routes = require('./route')(config.routes);
-    routes.getRoute(req.path, function(err, route) {
+    route.getRoute(req.path, function(err, route) {
       if (err) {
         return res.send(500);
       }
